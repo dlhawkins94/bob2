@@ -1,0 +1,3 @@
+WhateverPL (c) God Emperor Dan Hawkins
+
+You can do what you like with this code but you must include this file with any work that uses it
