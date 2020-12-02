@@ -313,6 +313,24 @@
 	  
 	  package-path)))))
 
+;; fetch & build a slackbuild, returns path to built package
+(define (prepare-sb sb)
+  ;; install/upgrade all the dependencies
+  (for-each (lambda (name)
+	      (let ((sb (hash-table-ref *sblist* name)))
+		(if (pkg-installed? name)
+		    (upgrade-sb sb)
+		    (begin (format #t "# Need to install ~a~%" name)
+			   (install-sb sb)))))
+            (sb-requires sb))
+  
+  (get-sb sb)
+  (let ((package-path (build-sb sb)))
+    (when (not package-path)
+      (signal
+       (make-property-condition 'exn 'message (sb-name sb))))
+    package-path))
+
 (define (install-sb sb)
   (cond [(pkg-installed? (sb-name sb))
 	 (format #t "# ~a already installed, skipping~%" (sb-name sb))]
@@ -321,21 +339,9 @@
 	 (format #f "# ~a blacklisted; not installing.~%" (sb-name sb))]
 
 	[else
-	 ;; install all the dependencies
-	 (for-each (lambda (name)
-                     (when (not (pkg-installed? name))
-                       (format #t "# Need to install ~a~%" name)
-                       (install-sb (hash-table-ref *sblist* name))))
-                   (sb-requires sb))
-         
-         (get-sb sb)
-         (let ((package-path (build-sb sb)))
-           (when (not package-path)
-             (signal
-	      (make-property-condition 'exn 'message (sb-name sb))))
-           
-           (install-pkg package-path)
-           (delete-file package-path)
+	 (let ((package-path (prepare-sb sb)))
+	   (install-pkg package-path)
+	   (delete-file package-path)
 	   (pkg-add (sb-name sb)))]))
 
 (define (upgrade-sb sb)
@@ -350,12 +356,7 @@
          (format #t "# Package ~a is up to date.~%" (sb-name sb))]
 	
 	[else
-	 (get-sb sb)
-         (let ((package-path (build-sb sb)))
-           (when (not package-path)
-	     (signal
-	      (make-property-condition 'exn 'message (sb-name sb))))
-	   
+         (let ((package-path (prepare-sb sb)))
            (upgrade-pkg package-path)
            (delete-file package-path))]))
 
