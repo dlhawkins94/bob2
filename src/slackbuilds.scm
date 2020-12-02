@@ -315,21 +315,25 @@
 
 ;; fetch & build a slackbuild, returns path to built package
 (define (prepare-sb sb)
-  ;; install/upgrade all the dependencies
-  (for-each (lambda (name)
-	      (let ((sb (hash-table-ref *sblist* name)))
-		(if (pkg-installed? name)
-		    (upgrade-sb sb)
-		    (begin (format #t "# Need to install ~a~%" name)
-			   (install-sb sb)))))
-            (sb-requires sb))
-  
-  (get-sb sb)
-  (let ((package-path (build-sb sb)))
-    (when (not package-path)
-      (signal
-       (make-property-condition 'exn 'message (sb-name sb))))
-    package-path))
+  (let ((opts (get-sb-opts sb)))
+    ;; install/upgrade all the dependencies
+    (let ((ignore-deps (vector->list (cdr (assoc 'ignore-deps opts)))))
+      (for-each (lambda (name)
+		  (cond [(member name ignore-deps)
+			 (format #t "Ignoring dep \"~a\"~%" name)]
+			[(pkg-installed? name)
+			 (upgrade-sb (hash-table-ref *sblist* name))]
+			[else
+			 (format #t "# Need to install ~a~%" name)
+			 (install-sb (hash-table-ref *sblist* name))]))
+		(sb-requires sb)))
+    
+    (get-sb sb)
+    (let ((package-path (build-sb sb)))
+      (when (not package-path)
+	(signal
+	 (make-property-condition 'exn 'message (sb-name sb))))
+      package-path)))
 
 (define (install-sb sb)
   (cond [(pkg-installed? (sb-name sb))
