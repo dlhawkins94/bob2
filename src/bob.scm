@@ -98,6 +98,9 @@
     
     [(upgrade-all)
      (for-each upgrade-sb (new-sbs))]
+
+    [(build)
+     (build-sb (hash-table-ref *sblist* (car args)))]
     
     [(install)
      (for-each (lambda (name)
