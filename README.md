@@ -44,16 +44,64 @@ upgrades with it). If the script fails with an error, bob does too.
 
 When new packages are installed, bob looks for any dependencies that aren't
 installed, and builds and installs those as well. This works recursively so the
-entire dependency tree of packages gets installed. Currently, upgrades don't
-check for new dependencies. ~~This will probably cause severe headaches down the
-line.~~
+entire dependency tree of packages gets installed. This works for upgrading as
+well; upgrading a package will make sure its deps are upgraded, and that any
+new deps are installed.
 
 Package removal is not handled by bob, as that's unnecessary (`removepkg` will
 suffice).
 
-Packages may be blacklisted: add a line to `/etc/bob/blacklist.txt`. A number of
-packages may be broken on `current`, need manually set build options, or have
-`*.info` parameters that prevent automatic installation.
+## Configuration
+
+### /etc/bob/blacklist.txt
+
+Packages listed here (one per line) are ignored by install/upgrade commands. If
+bob tries to install a package which depends on a blacklisted package, that
+install command will fail.
+
+### /etc/bob/forced_libs.txt
+
+Packages listed here are members of `libraries/` which are not considered
+dependencies. This is only relevant to the `unneeded-libraries` command, as they
+won't be considered 'removable' by this command.
+
+### /etc/bob/sbopts.json
+
+This file is used to apply tweaks to the package creation process. It's a nested
+JSON object in the form `{"pkgname": {"option": ...}}`. There should always be a
+`"DEFAULT"` entry which includes all the possible options. This entry will be
+updated with package-specific options to produce the final option set.
+
+Each option is described below:
+
+#### "buildenv"
+
+This is used to construct an environment variable list which precedes the call
+to the SlackBuild script. The list is specified as a JSON object, i.e.:
+
+~~~~
+"buildenv": {
+    "MAKEFLAGS": "-j 2",
+    "EXT_SRC_DIR": "/some/where"
+} => MAKEFLAGS="-j 2" EXT_SRC_DIR="/some/where"
+~~~~
+
+#### "manual-sources"
+
+Used to specify a list of sources which must be downloaded and placed in the
+sb folder before building. This is necessary when the automatic source
+fetching doesn't work due to sign in requirements or weird browser agent stuff.
+
+#### "ignore-deps"
+
+Used to specify a list of dependencies which are specified in the slackbuilds
+repo but which should be ignored. Many slackbuilds have an added requirement
+which doesn't actually exist as a package, usually called something like
+`"%README%"` or `"ATTENTION"`. I guess they're used to prevent auto-installing
+because some special steps are needed to prepare the package. If you can
+identify what those steps are and get bob to install the package, you can add
+those false requirements to this list to prevent bob from blocking on them in
+the future.
 
 ## Other commands
 

@@ -1,3 +1,8 @@
-WhateverPL (c) God Emperor Dan Hawkins
+WhateverPL (c) God Emperor Dan Hawkins (github:dlhawkins94)
 
-You can do what you like with this code but you must include this file with any work that uses it
+License to use code from bob2:
+You may use any of the code in bob2 for whatever purpose as long as you 
+include this file in the same directory as the file containing that code
+
+
+
