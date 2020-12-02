@@ -88,6 +88,27 @@
 	    (cons line
 		  (loop (read-line))))))))
 
+(define-once sbopts
+  (with-input-from-file "/etc/bob/sbopts.json"
+    (lambda ()
+      (alist->hash-table (read-json) equal?))))
+
+;; gets the configuration settings from sbopts.
+;; there's a default configuration; if specific configuration settings are specificed,
+;; the default conf is updated with them.
+;; the final conf is stored in sbopt-cache so this update doesn't happen more than once.
+(define *sbopt-cache* (make-hash-table equal?))
+(define (get-sb-opts sb)
+  (or (hash-table-ref/default *sbopt-cache* (sb-name sb) #f)
+      (let ((opts (alist->hash-table (hash-table-ref (sbopts) 'DEFAULT)))
+	    (opts-spec (hash-table-ref/default (sbopts) (string->symbol (sb-name sb)) #f)))
+	(when opts-spec
+	  (for-each (lambda (x)
+		      (hash-table-update! opts (car x) (lambda (old) (cdr x))))
+		    opts-spec))
+	(hash-table-set! *sbopt-cache* (string->symbol (sb-name sb)) (hash-table->alist opts))
+	(hash-table-ref *sbopt-cache* (string->symbol (sb-name sb))))))
+
 ;; returns true if there is a new changelog, meaning the slackbuild list is out of date
 (define (get-changelog)
   (let* ((path (cat-str +data-root+ "/ChangeLog.txt"))
@@ -264,14 +285,23 @@
 
 		 dir)))
 
+;; generates the env variable string that precedes the SlackBuild call
+(define (generate-buildenv-string sb)
+  (fold (lambda (envvar str)
+	  (cat-str str (symbol->string (car envvar)) "=\"" (cdr envvar) "\" "))
+	""
+	(cdr (assoc 'buildenv (get-sb-opts sb)))))
+
 ;; returns path of built package file
 (define (build-sb sb)
   (format #t "# Building ~a~%" (sb-name sb))
   (let ((cwd (current-directory))
 	(sb-dir (cat-str +cache-root+ "/" (sb-location sb)))
-	(script (cat-str (sb-name sb) ".SlackBuild")))
+	(script (cat-str (sb-name sb) ".SlackBuild"))
+	(buildenv (generate-buildenv-string sb)))
+    
     (change-directory sb-dir)
-    (with-input-from-pipe (cat-str "sh " script)
+    (with-input-from-pipe (cat-str buildenv " sh " script)
       (lambda ()
 	(let ((package-path #f))
 	  (let loop ((line (read-line)))
