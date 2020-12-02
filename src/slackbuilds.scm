@@ -272,6 +272,15 @@
     (delete-file tmp)
     (newline)
 
+    ;; If there are sources which can't be downloaded automatically,
+    ;; warn the user that they need to manually do this, provide links & wait for input.
+    (let ((manual-sources (vector->list (cdr (assoc 'manual-sources (get-sb-opts sb))))))
+      (when (< 0 (length manual-sources))
+	(print "# These sources can't be downloaded automatically:")
+	(for-each print manual-sources)
+	(format #t "# Place the download sources in ~a then press enter.~%" dir)
+	(read-line)))
+
     ;; If there are separate sources for 32- and 64-bit, pick the 64-bit one.
     ;; Obviously that won't work on 32 bit systems...
     (print "# Getting sources:")
