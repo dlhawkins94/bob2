@@ -99,6 +99,9 @@
     [(upgrade-all)
      (for-each upgrade-sb (new-sbs))]
 
+    [(fetch)
+     (get-sb (hash-table-ref *sblist* (car args)))]
+
     [(build)
      (build-sb (hash-table-ref *sblist* (car args)))]
     
