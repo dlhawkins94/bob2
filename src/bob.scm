@@ -7,6 +7,7 @@
 	(chicken process-context))
 (import srfi-1 srfi-13 srfi-69)
 (import http-client)
+(import shell)
 
 ;; I don't know what the general expectations for these rules are, but:
 ;; flags (options w/o args) are preceded by one hyphen.
@@ -109,6 +110,11 @@
      (for-each (lambda (name)
 		 (install-sb (hash-table-ref *sblist* name)))
 	       args)]
+
+    [(reinstall)
+     (run (removepkg ,(car args)))
+     (load-pkglist)
+     (install-sb (hash-table-ref *sblist* (car args)))]
     
     [(unneeded-libraries)
      (for-each (lambda (sb)

@@ -14,6 +14,8 @@
 (define *pkglist* (make-hash-table equal?))
 
 (define (load-pkglist)
+  ;; in case this gets called to reset the package list
+  (set! *pkglist* (make-hash-table equal?))
   (print "# Loading installed package list")
   (for-each (lambda (listing)
 	      ;; package listing has form pkg-name-...-$version-$arch-$build
