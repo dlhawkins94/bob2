@@ -157,6 +157,7 @@
 (define-once new-sbs
   (filter-map (lambda (pkg)
 		(and (pkg-is-sb? pkg)
+		     (hash-table-exists? *sblist* (pkg-name pkg))
 		     (let ((sb (hash-table-ref *sblist* (pkg-name pkg))))
 		       (and (not (pkg-up-to-date? pkg (sb-version sb)))
 			    sb))))
