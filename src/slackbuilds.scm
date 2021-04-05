@@ -111,12 +111,15 @@
 
 ;; returns true if there is a new changelog, meaning the slackbuild list is out of date
 (define (get-changelog)
-  (let* ((path (cat-str +data-root+ "/ChangeLog.txt"))
-	 (uri (cat-str +repo-url+ "/ChangeLog.txt"))
-	 (curr-md5 (get-md5sum path)))
+  (let ((path (cat-str +data-root+ "/ChangeLog.txt")))
+    (unless (file-exists? path)
+      (system (cat-str "touch " path)))
 
-    (run (wget ,uri -O ,path))
-    (not (test-md5sum curr-md5 path))))
+    (let ((uri (cat-str +repo-url+ "/ChangeLog.txt"))
+	  (curr-md5 (get-md5sum path)))
+
+      (run (wget ,uri -O ,path))
+      (not (test-md5sum curr-md5 path)))))
 
 ;; fetches the list of slackbuilds from the server
 (define (get-sblist)
