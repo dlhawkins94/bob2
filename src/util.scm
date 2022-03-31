@@ -6,7 +6,7 @@
 
 (define +cache-root+ "/var/cache/bob")
 (define +data-root+ "/var/lib/bob")
-(define +repo-url+ "https://slackbuilds.org/slackbuilds/14.2")
+(define +repo-url+ "https://slackbuilds.org/slackbuilds/15.0")
 
 (define (cat-str #!rest strs)
   (string-concatenate strs))

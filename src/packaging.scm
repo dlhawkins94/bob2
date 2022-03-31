@@ -34,24 +34,28 @@
        (not (string-any char-set:letter str))))
 
 (define (compare-version-string ver1 ver2)
-  (if (every dotnum-version? (list ver1 ver2))
-      (let loop ((tokens1 (string-split ver1 "."))
-                 (tokens2 (string-split ver2 ".")))
-        
-        ;; If ver2 has fewer tokens that all match ver1's, then ver1 must be >=
-        ;; If ver1 has fewer tokens that all match, then ver1 must be <
-        ;; otherwise for each token, if the tokens aren't equal, then the version with
-        ;; the higher token has the higher version.
-        (cond [(null? tokens2) #t]
-              [(and (null? tokens1)
-                    (not (null? tokens2))) #f]
-              [(> (string->number (car tokens1))
-                  (string->number (car tokens2))) #t]
-              [(< (string->number (car tokens1))
-                  (string->number (car tokens2))) #f]
-              [else (loop (cdr tokens1) (cdr tokens2))]))
-      
-      (string>= ver1 ver2)))
+  (let ((ver1 (string-join (string-split ver1 "_") "."))
+	(ver2 (string-join (string-split ver2 "_") ".")))
+    
+    (if (every dotnum-version? (list ver1 ver2))
+	(let loop ((tokens1 (string-split ver1 "."))
+                   (tokens2 (string-split ver2 ".")))
+          
+          ;; If ver2 has fewer tokens that all match ver1's, then ver1 must be >=
+          ;; If ver1 has fewer tokens that all match, then ver1 must be <
+          ;; otherwise for each token, if the tokens aren't equal, then the version with
+          ;; the higher token has the higher version.
+	  ;;(display tokens2) (newline)
+          (cond [(null? tokens2) #t]
+		[(and (null? tokens1)
+                      (not (null? tokens2))) #f]
+		[(> (string->number (car tokens1))
+                    (string->number (car tokens2))) #t]
+		[(< (string->number (car tokens1))
+                    (string->number (car tokens2))) #f]
+		[else (loop (cdr tokens1) (cdr tokens2))]))
+	
+	(string>= ver1 ver2))))
 
 (define (installed-pkgs)
   (hash-table-values *pkglist*))

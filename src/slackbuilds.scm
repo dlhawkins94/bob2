@@ -118,7 +118,8 @@
     (let ((uri (cat-str +repo-url+ "/ChangeLog.txt"))
 	  (curr-md5 (get-md5sum path)))
 
-      (run (wget ,uri -O ,path))
+      ;; TODO: only run --no-check-certificate if necessary // add force flag?
+      (run (wget --no-check-certificate ,uri -O ,path))
       (not (test-md5sum curr-md5 path)))))
 
 ;; fetches the list of slackbuilds from the server
