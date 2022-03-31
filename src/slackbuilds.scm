@@ -257,7 +257,7 @@
 			       (delete-file path))))
 
 		  (unless src-ok
-		    (run (wget ,uri -O ,path))
+		    (run (wget --no-check-certificate ,uri -O ,path))
 		    (run (echo ,path >> ,src-log)) ;; append src path to log
 		    (unless (test-md5sum md5sum path)
 		      (error `("# md5 mismatch" (,md5sum ,(get-md5sum path))))))))
@@ -272,7 +272,7 @@
 
     ;; retrieve & extract the slackbuild tarball
     (run (mkdir -p ,(drop-file-name tmp)))
-    (run (wget ,sb-uri -O ,tmp))
+    (run (wget --no-check-certificate ,sb-uri -O ,tmp))
     (run (tar xvzf ,tmp -C ,(drop-file-name tmp)))
     (delete-file tmp)
     (newline)
